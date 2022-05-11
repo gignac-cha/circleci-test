@@ -35,10 +35,12 @@ jobs:
           command: git config --local user.name "Jin-Hyeok, Cha"
       - run:
           command: git switch page
+      # - run:
+      #     command: git fetch --prune
+      # - run:
+      #     command: git reset --hard origin/main
       - run:
-          command: git fetch --prune
-      - run:
-          command: git reset --hard origin/main
+          command: git merge --no-edit -X theirs origin/main
       - run:
           command: rm -rf docs
       - run:
