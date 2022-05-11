@@ -1,0 +1,53 @@
+version: 2.1
+
+workflows:
+  build-and-publish:
+    jobs:
+      - build-and-publish:
+          filters:
+            branches:
+              only:
+                - main
+
+executors:
+  build-and-publish:
+    docker:
+      - image: cimg/node:lts
+    working_directory: ~/test
+
+jobs:
+  build-and-publish:
+    executor: build-and-publish
+    # parallelism: 1
+    steps:
+      - checkout
+      - restore_cache:
+          key: test-{{ checksum "package.json" }}
+      - run:
+          command: npm i
+      - save_cache:
+          key: test-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          command: git config --local user.email "Jin-Hyeok.Cha@outlook.kr"
+      - run:
+          command: git config --local user.name "Jin-Hyeok, Cha"
+      - run:
+          command: git switch page
+      - run:
+          command: git fetch --prune
+      - run:
+          command: git reset --hard origin/main
+      - run:
+          command: rm -rf docs
+      - run:
+          command: npx parcel build --public-url . --dist-dir docs src/index.html
+      - run:
+          command: date >> docs/timestamp
+      - run:
+          command: git add docs
+      - run:
+          command: git commit -m "v$(cat package.json | jq -r .version), $(date)"
+      - run:
+          command: git push -f https://${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/gignac-cha/circleci-test.git page
